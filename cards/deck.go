@@ -1,10 +1,12 @@
 package main
 
-import( 
+import (
 	"fmt"
-	"strings"
 	"io/ioutil"
+	"math/rand"
 	"os"
+	"strings"
+	"time"
 )
 
 //Create a new type of Deck which is a slice of strings
@@ -30,12 +32,12 @@ func deal(d deck, handSize int) (deck, deck) {
 	return d[:handSize], d[handSize:]
 }
 
-func (d deck) saveToFile(filename string) error{
+func (d deck) saveToFile(filename string) error {
 	return ioutil.WriteFile(filename, []byte(d.toString()), 0666)
 }
-func newDeckFromFile(filename string) deck{
+func newDeckFromFile(filename string) deck {
 	bs, err := ioutil.ReadFile(filename)
-	if(err != nil){
+	if err != nil {
 		fmt.Println("Error:", err)
 		os.Exit(1)
 	}
@@ -43,10 +45,21 @@ func newDeckFromFile(filename string) deck{
 	return deck(strings.Split(string(bs), ","))
 }
 
-func (d deck) toString() string{
+func (d deck) toString() string {
 	return strings.Join([]string(d), ",")
 }
 
+func (d deck) shuffle() {
+	//Create a seed value so numbers are truly random -- use the time package to get a random int64 via UnixNano func
+	source := rand.NewSource(time.Now().UnixNano())
+	//pass the seed value or source into the rand type
+	r := rand.New(source)
+	for i := range d {
+		//use r as the seed rand
+		newPos := r.Intn(len(d) - 1)
+		d[i], d[newPos] = d[newPos], d[i]
+	}
+}
 
 func (d deck) print() {
 	for i, card := range d {
